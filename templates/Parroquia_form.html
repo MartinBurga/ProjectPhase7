@@ -30,6 +30,10 @@
 <label>Teléfono</label>
 <input class="form-control" name="telefono" value="{{ parroquia.sede.telefonoSede if parroquia }}">
 </div>
+<div class="mb-2">
+<label>Parroco</label>
+<input class="form-control" name="parroco" value="{{ parroquia.sede.parroco if parroquia }}">
+</div>
 
 <button class="btn btn-success mt-3">Guardar</button>
 <a href="{{ url_for('parroquia') }}" class="btn btn-secondary">Cancelar</a>

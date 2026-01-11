@@ -18,8 +18,11 @@
 <tr>
 <th>Nombre</th>
 <th>Apellido</th>
+<th>Cedula</th>
 <th>Teléfono</th>
 <th>Parroquia</th>
+<th>Joven de Apoyo</th>
+<th>Cedula Joven</th>
 <th>Acciones</th>
 </tr>
 </thead>
@@ -28,8 +31,11 @@
 <tr>
 <td>{{ c.nombreCatequista }}</td>
 <td>{{ c.apellidoCatequista }}</td>
+<td>{{ c.cedula }}</td>
 <td>{{ c.telefonoCatequista }}</td>
-<td>{{ c.idParroquia }}</td>
+<td>{{ c.nombreParroquia }}</td>
+<td>{{ c.jovenApoyo.nombresJoven }}</td>
+<td>{{ c.jovenApoyo.cedulaJoven }}</td>
 <td>
 <a href="{{ url_for('editar_catequista', id=c._id) }}" class="btn btn-warning btn-sm">Editar</a>
 <form action="{{ url_for('eliminar_catequista', id=c._id) }}" method="post" style="display:inline">

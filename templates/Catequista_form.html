@@ -22,8 +22,35 @@
 </div>
 
 <div class="mb-2">
+<label>Cédula</label>
+<input class="form-control" name="cedula" value="{{ catequista.cedula if catequista }}">
+</div>
+
+<div class="mb-2">
 <label>Teléfono</label>
 <input class="form-control" name="telefono" value="{{ catequista.telefonoCatequista if catequista }}">
+</div>
+
+<div class="mb-2">
+<label>Parroquia</label>
+<select class="form-control" name="idParroquia">
+  <option value="">-- Selecciona una parroquia --</option>
+  {% for p in parroquias %}
+    <option value="{{ p._id }}" {% if catequista and catequista.idParroquia == p._id %} selected {% endif %}>
+      {{ p.nombre }}
+    </option>
+  {% endfor %}
+</select>
+</div>
+
+<div class="mb-2">
+<label>Joven Apoyo</label>
+    <input class="form-control" name="Joven Apoyo" value="{{ catequista.jovenApoyo.nombresJoven if catequista }}">
+</div>
+
+<div class="mb-2">
+<label>Cedula Joven</label>
+    <input class="form-control" name="Cedula Joven" value="{{ catequista.jovenApoyo.cedulaJoven if catequista }}">
 </div>
 
 <div class="mb-2">

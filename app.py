@@ -17,7 +17,20 @@ def index():
 @app.route("/Catequista")
 def catequista():
     catequistas = list(mongo.db.Catequista.find())
+
+    parroquias = list(mongo.db.Parroquia.find())
+    parroquias_dict = {str(p['_id']): p['nombre'] for p in parroquias}
+
+    for c in catequistas:
+        id_parroquia = str(c.get('idParroquia')) if c.get('idParroquia') else None
+        c['nombreParroquia'] = parroquias_dict.get(id_parroquia, "Sin Parroquia")
+
+        if 'jovenApoyo' not in c or not c['jovenApoyo']:
+            c['jovenApoyo'] = {'nombresJoven':'', 'cedulaJoven':''}
+
     return render_template("Catequista.html", catequistas=catequistas)
+
+
 
 @app.route("/Catequista/nuevo", methods=["GET","POST"])
 def nuevo_catequista():
@@ -25,28 +38,60 @@ def nuevo_catequista():
         mongo.db.Catequista.insert_one({
             'nombreCatequista': request.form['nombre'],
             'apellidoCatequista': request.form['apellido'],
+            'cedula': request.form['cedula'],
             'telefonoCatequista': request.form['telefono'],
-            'idParroquia': request.form['idParroquia']
+            'idParroquia': request.form['idParroquia'],
+            'jovenApoyo': {
+                'nombresJoven': request.form['Joven Apoyo'],
+                'cedulaJoven': request.form['Cedula Joven']
+            }
         })
         return redirect(url_for("catequista"))
-    return render_template("Catequista_form.html", accion="Nuevo", catequista=None)
+
+    parroquias = list(mongo.db.Parroquia.find())
+    for p in parroquias:
+        p['_id'] = str(p['_id'])
+
+    return render_template("Catequista_form.html", accion="Nuevo", catequista=None, parroquias=parroquias)
 
 @app.route("/Catequista/editar/<id>", methods=["GET","POST"])
 def editar_catequista(id):
+    catequista = mongo.db.Catequista.find_one({'_id': ObjectId(id)})
+
+    parroquias = list(mongo.db.Parroquia.find())
+    for p in parroquias:
+        p['_id'] = str(p['_id'])
+
     if request.method == "POST":
+        # idJoven siempre debe ser ObjectId
+        if 'jovenApoyo' in catequista and 'idJoven' in catequista['jovenApoyo']:
+            id_joven = catequista['jovenApoyo']['idJoven']
+        else:
+            id_joven = ObjectId()
+
         mongo.db.Catequista.update_one(
             {'_id': ObjectId(id)},
             {'$set': {
                 'nombreCatequista': request.form['nombre'],
                 'apellidoCatequista': request.form['apellido'],
+                'cedula': request.form['cedula'],
                 'telefonoCatequista': request.form['telefono'],
-                'idParroquia': request.form['idParroquia']
+                'idParroquia': request.form['idParroquia'] if request.form.get('idParroquia') else "",
+                'jovenApoyo': {
+                    'idJoven': ObjectId(id_joven),
+                    'nombresJoven': request.form['Joven Apoyo'],
+                    'cedulaJoven': request.form['Cedula Joven']
+                }
             }}
         )
         return redirect(url_for("catequista"))
 
-    catequista = mongo.db.Catequista.find_one({'_id': ObjectId(id)})
-    return render_template("Catequista_form.html", accion="Editar", catequista=catequista)
+    return render_template(
+        "Catequista_form.html",
+        accion="Editar",
+        catequista=catequista,
+        parroquias=parroquias
+    )
 
 @app.route("/Catequista/eliminar/<id>", methods=["POST"])
 def eliminar_catequista(id):
@@ -142,7 +187,8 @@ def nueva_parroquia():
             'sede': {
                 'nombreSede': request.form['nombreSede'],
                 'direccion': request.form['direccion'],
-                'telefonoSede': request.form['telefono']
+                'telefonoSede': request.form['telefono'],
+                'parroco': request.form['parroco']
             }
         })
         return redirect(url_for("parroquia"))
@@ -158,7 +204,8 @@ def editar_parroquia(id):
                 'sede': {
                     'nombreSede': request.form['nombreSede'],
                     'direccion': request.form['direccion'],
-                    'telefonoSede': request.form['telefono']
+                    'telefonoSede': request.form['telefono'],
+                    'parroco': request.form['parroco'] 
                 }
             }}
         )
@@ -166,6 +213,7 @@ def editar_parroquia(id):
 
     parroquia = mongo.db.Parroquia.find_one({'_id': ObjectId(id)})
     return render_template("Parroquia_form.html", accion="Editar", parroquia=parroquia)
+
 
 @app.route("/Parroquia/eliminar/<id>", methods=["POST"])
 def eliminar_parroquia(id):
