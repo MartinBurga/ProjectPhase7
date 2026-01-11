@@ -8,12 +8,12 @@ app = Flask(__name__)
 app.config["MONGO_URI"] = config.MONGO_URI
 mongo = PyMongo(app)
 
+# ================= INDEX =================
 @app.route("/")
 def index():
     return render_template("index.html")
 
 # ================= CATEQUISTA =================
-
 @app.route("/Catequista")
 def catequista():
     catequistas = list(mongo.db.Catequista.find())
@@ -44,6 +44,7 @@ def editar_catequista(id):
             }}
         )
         return redirect(url_for("catequista"))
+
     catequista = mongo.db.Catequista.find_one({'_id': ObjectId(id)})
     return render_template("Catequista_form.html", accion="Editar", catequista=catequista)
 
@@ -53,36 +54,60 @@ def eliminar_catequista(id):
     return redirect(url_for("catequista"))
 
 # ================= CATEQUIZANDO =================
-
 @app.route("/Catequizando")
 def catequizando():
     catequizandos = list(mongo.db.Catequizando.find())
+    niveles_dict = {str(n['_id']): n['nombreNivel'] for n in mongo.db.Nivel.find()}
+
+    niveles_resumen = {}
     for c in catequizandos:
         if isinstance(c.get('fechaNacimiento'), datetime):
             c['fechaNacimiento'] = c['fechaNacimiento'].strftime('%Y-%m-%d')
+        # Convertir ObjectId a string para usar en template
+        c['idNivel'] = str(c['idNivel']) if c.get('idNivel') else ''
+        c['nombreNivel'] = niveles_dict.get(c.get('idNivel'), "Sin Nivel")
 
-    niveles = {}
-    for c in catequizandos:
-        nivel = c.get("idNivel", "Sin Nivel")
-        niveles[nivel] = niveles.get(nivel, 0) + 1
+        # Resumen
+        nivel = c['nombreNivel']
+        niveles_resumen[nivel] = niveles_resumen.get(nivel, 0) + 1
 
-    return render_template("Catequizando.html", catequizandos=catequizandos, total=len(catequizandos), niveles_resumen=niveles)
+    return render_template(
+        "Catequizando.html", 
+        catequizandos=catequizandos, 
+        total=len(catequizandos), 
+        niveles_resumen=niveles_resumen
+    )
 
 @app.route("/Catequizando/nuevo", methods=["GET","POST"])
 def nuevo_catequizando():
+    niveles = list(mongo.db.Nivel.find())
+    for n in niveles:
+        n['_id'] = str(n['_id'])  # Convertir ObjectId a string
+
     if request.method == "POST":
         mongo.db.Catequizando.insert_one({
             'nombreCatequizando': request.form['nombre'],
             'apellidoCatequizando': request.form['apellido'],
             'cedulaCatequizando': request.form['cedula'],
             'fechaNacimiento': datetime.strptime(request.form['fechaNacimiento'], "%Y-%m-%d"),
-            'idNivel': request.form['idNivel']
+            'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None
         })
         return redirect(url_for("catequizando"))
-    return render_template("Catequizando_form.html", accion="Nuevo", catequizando=None)
+
+    return render_template("Catequizando_form.html", accion="Nuevo", catequizando=None, niveles=niveles)
 
 @app.route("/Catequizando/editar/<id>", methods=["GET","POST"])
 def editar_catequizando(id):
+    niveles = list(mongo.db.Nivel.find())
+    for n in niveles:
+        n['_id'] = str(n['_id'])
+
+    catequizando = mongo.db.Catequizando.find_one({'_id': ObjectId(id)})
+    if isinstance(catequizando.get("fechaNacimiento"), datetime):
+        catequizando["fechaNacimiento"] = catequizando["fechaNacimiento"].strftime("%Y-%m-%d")
+    # Convertir ObjectId a string para seleccionar el nivel en template
+    catequizando['idNivel'] = str(catequizando['idNivel']) if catequizando.get('idNivel') else ''
+
     if request.method == "POST":
         mongo.db.Catequizando.update_one(
             {'_id': ObjectId(id)},
@@ -91,16 +116,12 @@ def editar_catequizando(id):
                 'apellidoCatequizando': request.form['apellido'],
                 'cedulaCatequizando': request.form['cedula'],
                 'fechaNacimiento': datetime.strptime(request.form['fechaNacimiento'], "%Y-%m-%d"),
-                'idNivel': request.form['idNivel']
+                'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None
             }}
         )
         return redirect(url_for("catequizando"))
 
-    catequizando = mongo.db.Catequizando.find_one({'_id': ObjectId(id)})
-    if isinstance(catequizando.get("fechaNacimiento"), datetime):
-        catequizando["fechaNacimiento"] = catequizando["fechaNacimiento"].strftime("%Y-%m-%d")
-
-    return render_template("Catequizando_form.html", accion="Editar", catequizando=catequizando)
+    return render_template("Catequizando_form.html", accion="Editar", catequizando=catequizando, niveles=niveles)
 
 @app.route("/Catequizando/eliminar/<id>", methods=["POST"])
 def eliminar_catequizando(id):
@@ -108,7 +129,6 @@ def eliminar_catequizando(id):
     return redirect(url_for("catequizando"))
 
 # ================= PARROQUIA =================
-
 @app.route("/Parroquia")
 def parroquia():
     parroquias = list(mongo.db.Parroquia.find())
@@ -151,6 +171,21 @@ def editar_parroquia(id):
 def eliminar_parroquia(id):
     mongo.db.Parroquia.delete_one({'_id': ObjectId(id)})
     return redirect(url_for("parroquia"))
+
+# ================= NIVELES (SOLO LECTURA) =================
+@app.route("/Nivel")
+def nivel():
+    niveles = list(mongo.db.Nivel.find())
+    total = len(niveles)
+
+    for n in niveles:
+        n['_id'] = str(n['_id'])
+        if 'certificado' in n and n['certificado']:
+            n['certificado']['fechaCertificado'] = str(n['certificado']['fechaCertificado'])[:10]
+        if 'sacramento' in n and n['sacramento']:
+            n['sacramento']['fechaSacramento'] = str(n['sacramento']['fechaSacramento'])[:10]
+
+    return render_template("Nivel.html", niveles=niveles, total=total)
 
 if __name__ == "__main__":
     app.run(debug=True)
