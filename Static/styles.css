@@ -1,0 +1,240 @@
+/* ================== PALETA ================== */
+:root {
+    --gold-main: #f6c453;      /* dorado principal */
+    --gold-deep: #d9a21f;      /* dorado más fuerte */
+    --gold-light: #fff3c4;     /* dorado suave */
+    --gold-soft: #fff9e5;
+    --purple-deep: #2b203b;    /* morado oscuro para contraste */
+    --text-dark: #2e2738;
+}
+
+/* ================== FONDO GENERAL ================== */
+
+body.sacred-bg {
+    background:
+        radial-gradient(circle at top,
+            rgba(246, 196, 83, 0.45),
+            transparent 58%),
+        linear-gradient(180deg, #fffef9, #fff3d9);
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text-dark);
+}
+
+/* ================== NAVBAR ================== */
+
+.sacred-navbar {
+    background: linear-gradient(90deg, var(--purple-deep), #3a2853);
+    border-bottom: 4px solid var(--gold-main);
+}
+
+.sacred-navbar .navbar-brand {
+    color: #fffdf9;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+}
+
+.sacred-navbar .navbar-brand:hover {
+    color: #ffffff;
+}
+
+.brand-cross {
+    color: var(--gold-main);
+    font-size: 1.25rem;
+}
+
+/* ================== CARD PRINCIPAL ================== */
+
+.main-card {
+    position: relative;
+    background: linear-gradient(145deg, #ffffff, #fff9e6);
+    border-radius: 22px;
+    border: 1px solid rgba(217, 162, 31, 0.8);
+    box-shadow: 0 18px 45px rgba(217, 162, 31, 0.25);
+    padding: 1.7rem 1.9rem;
+}
+
+/* cruz de agua muy suave en la esquina */
+.main-card::before {
+    content: "\f00c"; /* usaremos un pseudo simbolito, queda super tenue */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    right: 1.3rem;
+    top: 1.1rem;
+    font-size: 1.3rem;
+    color: rgba(217, 162, 31, 0.16);
+}
+
+/* ================== TÍTULOS ================== */
+
+.section-title {
+    font-weight: 650;
+    font-size: 1.45rem;
+    color: #2a2238;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.section-title .title-cross {
+    color: var(--gold-deep);
+    font-size: 1.25rem;
+}
+
+/* texto descriptivo pequeño bajo el título */
+.section-subtitle {
+    font-size: 0.9rem;
+    color: #7a6c52;
+}
+
+/* ================== TABLA ================== */
+
+.table.sacred-table {
+    border-radius: 16px;
+    overflow: hidden;
+    background-color: #ffffff;
+    margin-bottom: 0;
+}
+
+.table.sacred-table thead {
+    background: linear-gradient(90deg, var(--gold-main), #ffde7a);
+    color: #3b2a10;
+    border-bottom: 2px solid var(--gold-deep);
+}
+
+.table.sacred-table thead th {
+    border: none;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.table.sacred-table tbody tr:nth-child(even) {
+    background-color: #fffaf0;
+}
+
+.table.sacred-table tbody tr:nth-child(odd) {
+    background-color: #fffdf7;
+}
+
+.table.sacred-table tbody tr:hover {
+    background-color: #ffefc6;
+}
+
+/* ================== BOTONES ================== */
+
+.btn-sgold {
+    background: linear-gradient(135deg, var(--gold-main), var(--gold-deep));
+    border: none;
+    color: #3b2a10;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(195, 143, 26, 0.45);
+}
+
+.btn-sgold:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+}
+
+.btn-outline-sgold {
+    border: 1px solid var(--gold-deep);
+    color: #5c4515;
+    background-color: #fffaf0;
+}
+
+.btn-outline-sgold:hover {
+    background-color: var(--gold-light);
+    color: #3a2a0d;
+}
+
+.btn-outline-danger {
+    border-radius: 999px;
+}
+
+/* ================== ALERTAS ================== */
+
+.sacred-alert {
+    border-left: 5px solid var(--gold-deep);
+    background-color: var(--gold-soft);
+    color: #4d3b15;
+}
+
+/* ================== FORMULARIOS ================== */
+
+.form-label {
+    font-weight: 500;
+    color: #3a3248;
+}
+
+.form-control,
+textarea.form-control {
+    border-radius: 10px;
+    border: 1px solid #ddc58b;
+    background-color: #fffcf5;
+}
+
+.form-control:focus,
+textarea.form-control:focus {
+    border-color: var(--gold-deep);
+    box-shadow: 0 0 0 0.15rem rgba(217, 162, 31, 0.35);
+    background-color: #fffdf7;
+}
+
+/* ================== CRUCES DISCRETAS ================== */
+
+.subtle-cross {
+    color: rgba(217, 162, 31, 0.85);
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+}
+
+/* ================== TARJETAS DE RESUMEN ================== */
+
+.summary-card {
+    background: linear-gradient(135deg, #fff9e3, #ffe7a8);
+    border-radius: 16px;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid rgba(217, 162, 31, 0.8);
+    box-shadow: 0 8px 18px rgba(217, 162, 31, 0.35);
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b4c14;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b2a10;
+}
+
+/* Badge para niveles (más dorado) */
+.bg-level {
+    background: linear-gradient(135deg, #ffe8a8, #ffd268);
+    color: #4b3410;
+    font-weight: 600;
+    border: 1px solid rgba(217, 162, 31, 0.9);
+}
+
+/* ================== BUSCADOR ================== */
+
+.input-group-text {
+    background-color: var(--gold-light);
+    border-color: var(--gold-deep);
+}
+
+#buscador.form-control {
+    background-color: #fffdf7;
+}
+
+/* ================== FOOTER ================== */
+
+footer {
+    color: #7a6c52;
+}
