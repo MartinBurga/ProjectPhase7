@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_pymongo import PyMongo
 from bson import ObjectId
 from datetime import datetime
+from datetime import datetime
 import config
 
 app = Flask(__name__)
@@ -114,14 +115,11 @@ def catequizando():
         else:
             c['fechaNacimientoStr'] = ''
 
-        # Nombre del nivel
         nivel_id = str(c.get('idNivel', 'Sin Nivel'))
         c['nombreNivel'] = niveles.get(nivel_id, 'Sin Nivel')
 
-        # Nombre del representante (solo nombre)
         c['nombreRepresentante'] = c.get('representante', {}).get('nombreRepresentante', 'Sin Representante')
 
-        # Resumen por nivel
         niveles_resumen[c['nombreNivel']] = niveles_resumen.get(c['nombreNivel'], 0) + 1
 
     return render_template(
@@ -135,24 +133,47 @@ def catequizando():
 @app.route("/Catequizando/detalle/<id>")
 def detalle_catequizando(id):
     c = mongo.db.Catequizando.find_one({'_id': ObjectId(id)})
+    # Historial de faltas
+    faltas = []
 
-    # Formatear fechas
+    if c.get("inasistencias"):
+        for f in c["inasistencias"]:
+            fecha = f["fecha"].strftime("%Y-%m-%d") if isinstance(f["fecha"], datetime) else f["fecha"]
+            faltas.append({
+                "fecha": fecha,
+                "presente": f["presente"]
+            })
+    # ---------- Formatear fechas ----------
     if isinstance(c.get('fechaNacimiento'), datetime):
         c['fechaNacimientoStr'] = c['fechaNacimiento'].strftime('%Y-%m-%d')
+
     if c.get('inscripcion') and isinstance(c['inscripcion'].get('fechaInscripcion'), datetime):
         c['inscripcion']['fechaInscripcionStr'] = c['inscripcion']['fechaInscripcion'].strftime('%Y-%m-%d')
+
     if c.get('inasistencia') and isinstance(c['inasistencia'].get('fechaInasistencia'), datetime):
         c['inasistencia']['fechaInasistenciaStr'] = c['inasistencia']['fechaInasistencia'].strftime('%Y-%m-%d')
 
-    # Traer nivel para mostrar nombre
+    # ---------- Nivel y Certificado ----------
+    nivel = None
+    certificado = None
+
     if c.get('idNivel'):
         nivel = mongo.db.Nivel.find_one({'_id': ObjectId(c['idNivel'])})
-        c['nombreNivel'] = nivel['nombreNivel'] if nivel else 'Sin Nivel'
+        if nivel:
+            c['nombreNivel'] = nivel.get('nombreNivel', 'Sin Nivel')
+            certificado = nivel.get('certificado')
+        else:
+            c['nombreNivel'] = 'Sin Nivel'
     else:
         c['nombreNivel'] = 'Sin Nivel'
 
-    return render_template("Catequizando_detalle.html", catequizando=c)
-
+    return render_template(
+        "Catequizando_detalle.html",
+        catequizando=c,
+        nivel=nivel,
+        certificado=certificado,
+        faltas=faltas
+    )
 
 
 # ---------------- Editar catequizando ----------------
@@ -266,6 +287,52 @@ def nuevo_catequizando():
 def eliminar_catequizando(id):
     mongo.db.Catequizando.delete_one({'_id': ObjectId(id)})
     return redirect(url_for("catequizando"))
+
+
+
+@app.route("/Catequizando/falta/<id>", methods=["POST"])
+def registrar_falta(id):
+    fecha = request.form.get("fecha")
+
+    mongo.db.Catequizando.update_one(
+        {"_id": ObjectId(id)},
+        {
+            "$push": {
+                "inasistencias": {
+                    "fecha": datetime.strptime(fecha, "%Y-%m-%d"),
+                    "presente": False
+                }
+            }
+        }
+    )
+
+    return redirect(url_for("detalle_catequizando", id=id))
+
+# ---------------- Eliminar falta ----------------
+@app.route("/Catequizando/eliminar_falta/<id>", methods=["POST"])
+def eliminar_falta(id):
+    fecha_str = request.form.get("fecha")
+
+    # Convertir a rango de día (00:00:00 → 23:59:59)
+    fecha_inicio = datetime.strptime(fecha_str, "%Y-%m-%d")
+    fecha_fin = fecha_inicio.replace(hour=23, minute=59, second=59)
+
+    mongo.db.Catequizando.update_one(
+        {"_id": ObjectId(id)},
+        {
+            "$pull": {
+                "inasistencias": {
+                    "fecha": {
+                        "$gte": fecha_inicio,
+                        "$lte": fecha_fin
+                    }
+                }
+            }
+        }
+    )
+
+    return redirect(url_for("detalle_catequizando", id=id))
+
 
 # ================= PARROQUIA =================
 @app.route("/Parroquia")
