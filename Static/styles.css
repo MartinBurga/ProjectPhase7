@@ -238,3 +238,93 @@ textarea.form-control:focus {
 footer {
     color: #7a6c52;
 }
+
+/* ===============================
+   BOOTSTRAP INTEGRATION
+   (no romper botones)
+   =============================== */
+
+/* Texto y tamaño de botones */
+.btn,
+.btn * {
+    font-size: 0.9rem !important;
+    line-height: 1.3 !important;
+    visibility: visible !important;
+}
+
+/* Botón primario → dorado sagrado */
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold-main), var(--gold-deep)) !important;
+    border: none !important;
+    color: #3b2a10 !important;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(195, 143, 26, 0.45);
+}
+
+.btn-primary:hover {
+    filter: brightness(1.05);
+}
+
+/* Botón warning → dorado fuerte */
+.btn-warning {
+    background: linear-gradient(135deg, #ffd77a, var(--gold-deep)) !important;
+    border: none !important;
+    color: #3b2a10 !important;
+    font-weight: 600;
+}
+
+/* Botón danger → vino oscuro elegante */
+.btn-danger {
+    background: linear-gradient(135deg, #c0392b, #8e1e12) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+/* Botón secondary → morado profundo */
+.btn-secondary {
+    background: linear-gradient(135deg, var(--purple-deep), #3a2853) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+/* Botones pequeños */
+.btn-sm {
+    padding: .35rem .75rem !important;
+    font-size: 0.85rem !important;
+}
+
+/* ===============================
+   TABLAS BOOTSTRAP
+   =============================== */
+
+.table {
+    border-radius: 16px;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: 0 10px 22px rgba(217, 162, 31, 0.18);
+}
+
+.table thead {
+    background: linear-gradient(90deg, var(--gold-main), #ffde7a);
+    color: #3b2a10;
+    border-bottom: 2px solid var(--gold-deep);
+}
+
+.table thead th {
+    border: none;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #fffaf0;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: #fffdf7;
+}
+
+.table tbody tr:hover {
+    background-color: #ffefc6;
+}

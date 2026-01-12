@@ -3,118 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <title>{{ accion }} Catequizando</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
 </head>
-<body class="bg-light">
+<body class="sacred-bg">
 
-<div class="container mt-4">
-<h2>{{ accion }} Catequizando</h2>
+<nav class="navbar sacred-navbar mb-4">
+    <div class="container-fluid px-4">
+        <span class="navbar-brand">
+            <span class="brand-cross">✝</span> Sistema de Catequesis
+        </span>
+    </div>
+</nav>
 
-<form method="post">
-    <div class="row">
-        <!-- Información personal -->
-        <div class="col-md-6">
-            <h5>Información Personal</h5>
-            <div class="mb-2">
-                <label>Nombre</label>
-                <input class="form-control" name="nombre" value="{{ catequizando.nombreCatequizando if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Apellido</label>
-                <input class="form-control" name="apellido" value="{{ catequizando.apellidoCatequizando if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Cédula</label>
-                <input class="form-control" name="cedula" value="{{ catequizando.cedulaCatequizando if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Fecha de Nacimiento</label>
-                <input type="date" class="form-control" name="fechaNacimiento" value="{{ catequizando.fechaNacimientoStr if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Tipo de Sangre</label>
-                <input class="form-control" name="tipoSangre" value="{{ catequizando.tipoSangre if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Lugar de Residencia</label>
-                <input class="form-control" name="lugarResidencia" value="{{ catequizando.lugarResidencia if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Lugar de Nacimiento</label>
-                <input class="form-control" name="lugarNacimiento" value="{{ catequizando.lugarNacimiento if catequizando }}">
-            </div>
-            <div class="mb-2">
-                <label>Nivel</label>
-                <select class="form-control" name="idNivel">
-                    <option value="">Sin Nivel</option>
-                    {% for n in niveles %}
+<div class="container">
+
+<div class="main-card">
+
+    <div class="mb-4 text-center">
+        <h2 class="section-title justify-content-center">
+            <span class="title-cross">✝</span> {{ accion }} Catequizando
+        </h2>
+        <p class="section-subtitle">Registro sacramental del catequizando</p>
+    </div>
+
+    <form method="post">
+
+        <div class="row g-4">
+
+            <!-- Información Personal -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Información Personal <span class="subtle-cross">✝</span></h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-control" name="nombre" value="{{ catequizando.nombreCatequizando if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Apellido</label>
+                    <input class="form-control" name="apellido" value="{{ catequizando.apellidoCatequizando if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Cédula</label>
+                    <input class="form-control" name="cedula" value="{{ catequizando.cedulaCatequizando if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Fecha de Nacimiento</label>
+                    <input type="date" class="form-control" name="fechaNacimiento" value="{{ catequizando.fechaNacimientoStr if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Tipo de Sangre</label>
+                    <input class="form-control" name="tipoSangre" value="{{ catequizando.tipoSangre if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Lugar de Residencia</label>
+                    <input class="form-control" name="lugarResidencia" value="{{ catequizando.lugarResidencia if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Lugar de Nacimiento</label>
+                    <input class="form-control" name="lugarNacimiento" value="{{ catequizando.lugarNacimiento if catequizando }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Nivel</label>
+                    <select class="form-control" name="idNivel">
+                        <option value="">Sin Nivel</option>
+                        {% for n in niveles %}
                         <option value="{{ n._id }}" {% if catequizando.idNivel and catequizando.idNivel|string == n._id %}selected{% endif %}>
                             {{ n.nombreNivel }}
                         </option>
-                    {% endfor %}
-                </select>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Representante, padrino, inscripción -->
+            <div class="col-md-6">
+
+                <h5 class="mb-3">Representante <span class="subtle-cross">✝</span></h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-control" name="nombreRepresentante" value="{{ catequizando.representante.nombreRepresentante if catequizando.representante }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Apellido</label>
+                    <input class="form-control" name="apellidoRepresentante" value="{{ catequizando.representante.apellidoRepresentante if catequizando.representante }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Número</label>
+                    <input class="form-control" name="numeroRepresentante" value="{{ catequizando.representante.numeroRepresentante if catequizando.representante }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Tipo</label>
+                    <input class="form-control" name="tipoRepresentante" value="{{ catequizando.representante.tipoRepresentante if catequizando.representante }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Ocupación</label>
+                    <input class="form-control" name="ocupacionRepresentante" value="{{ catequizando.representante.ocupacionRepresentante if catequizando.representante }}">
+                </div>
+
+                <h5 class="mt-3 mb-3">Padrino <span class="subtle-cross">✝</span></h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-control" name="nombresPadrino" value="{{ catequizando.padrino.nombresPadrino if catequizando.padrino }}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Cédula</label>
+                    <input class="form-control" name="cedulaPadrino" value="{{ catequizando.padrino.cedulaPadrino if catequizando.padrino }}">
+                </div>
+
+                <h5 class="mt-3 mb-3">Inscripción <span class="subtle-cross">✝</span></h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Fecha Inscripción</label>
+                    <input type="date" class="form-control" name="fechaInscripcion" value="{{ catequizando.inscripcion.fechaInscripcionStr if catequizando.inscripcion }}">
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="estadoInscripcion"
+                           {% if catequizando.inscripcion.estadoInscripcion %}checked{% endif %}>
+                    <label class="form-check-label">Inscripción Activa</label>
+                </div>
+
+                <h5 class="mt-3 mb-3">Última Falta <span class="subtle-cross">✝</span></h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Fecha Inasistencia</label>
+                    <input type="date" class="form-control" name="fechaInasistencia"
+                           value="{{ catequizando.inasistencia.fechaInasistenciaStr if catequizando.inasistencia }}">
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="presente"
+                           {% if catequizando.inasistencia.presente %}checked{% endif %}>
+                    <label class="form-check-label">Presente</label>
+                </div>
+
             </div>
         </div>
 
-        <!-- Representante -->
-        <div class="col-md-6">
-            <h5>Representante</h5>
-            <div class="mb-2">
-                <label>Nombre</label>
-                <input class="form-control" name="nombreRepresentante" value="{{ catequizando.representante.nombreRepresentante if catequizando.representante }}">
-            </div>
-            <div class="mb-2">
-                <label>Apellido</label>
-                <input class="form-control" name="apellidoRepresentante" value="{{ catequizando.representante.apellidoRepresentante if catequizando.representante }}">
-            </div>
-            <div class="mb-2">
-                <label>Numero</label>
-                <input class="form-control" name="numeroRepresentante" value="{{ catequizando.representante.numeroRepresentante if catequizando.representante }}">
-            </div>
-            <div class="mb-2">
-                <label>Tipo</label>
-                <input class="form-control" name="tipoRepresentante" value="{{ catequizando.representante.tipoRepresentante if catequizando.representante }}">
-            </div>
-            <div class="mb-2">
-                <label>Ocupación</label>
-                <input class="form-control" name="ocupacionRepresentante" value="{{ catequizando.representante.ocupacionRepresentante if catequizando.representante }}">
-            </div>
+        <div class="text-center mt-4">
+            <button class="btn btn-sgold me-2">
+                💾 Guardar
+            </button>
 
-            <h5>Padrino</h5>
-            <div class="mb-2">
-                <label>Nombre</label>
-                <input class="form-control" name="nombresPadrino" value="{{ catequizando.padrino.nombresPadrino if catequizando.padrino }}">
-            </div>
-            <div class="mb-2">
-                <label>Cedula</label>
-                <input class="form-control" name="cedulaPadrino" value="{{ catequizando.padrino.cedulaPadrino if catequizando.padrino }}">
-            </div>
-
-            <h5>Inscripción</h5>
-            <div class="mb-2">
-                <label>Fecha Inscripción</label>
-                <input type="date" class="form-control" name="fechaInscripcion" value="{{ catequizando.inscripcion.fechaInscripcionStr if catequizando.inscripcion }}">
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" name="estadoInscripcion" {% if catequizando.inscripcion.estadoInscripcion %}checked{% endif %}>
-                <label class="form-check-label">Inscripción Activa</label>
-            </div>
-
-            <h5>Última Falta</h5>
-            <div class="mb-2">
-                <label>Fecha Inasistencia</label>
-                <input type="date" class="form-control" name="fechaInasistencia" value="{{ catequizando.inasistencia.fechaInasistenciaStr if catequizando.inasistencia }}">
-            </div>
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" name="presente" {% if catequizando.inasistencia.presente %}checked{% endif %}>
-                <label class="form-check-label">Presente</label>
-            </div>
+            <a href="{{ url_for('catequizando') }}" class="btn btn-outline-sgold">
+                ⬅ Cancelar
+            </a>
         </div>
-    </div>
 
-    <button class="btn btn-success mt-3">Guardar</button>
-    <a href="{{ url_for('catequizando') }}" class="btn btn-secondary mt-3">Cancelar</a>
-</form>
+    </form>
+
 </div>
+</div>
+
 </body>
 </html>

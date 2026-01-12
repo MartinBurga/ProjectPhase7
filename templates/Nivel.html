@@ -3,42 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <title>Niveles</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
 </head>
-<body class="bg-light">
-<div class="container mt-4">
-<h2>Listado de Niveles</h2>
+<body class="sacred-bg">
 
-<p><strong>Total:</strong> {{ total }}</p>
+<nav class="navbar sacred-navbar mb-4">
+    <div class="container-fluid px-4">
+        <span class="navbar-brand">
+            <span class="brand-cross">✝</span> Sistema de Catequesis
+        </span>
+    </div>
+</nav>
 
-<table class="table table-bordered table-striped">
-<thead>
-<tr>
-<th>Nombre</th>
-<th>Frase</th>
-<th>Sacramento</th>
-<th>Certificado que se obtiene: </th>
-</tr>
-</thead>
-<tbody>
-{% for n in niveles %}
-<tr>
-  <td>{{ n.nombreNivel }}</td>
-  <td>{{ n.fraseNivel }}</td>
-  <td>{{ n.sacramento.nombreSacramento if n.sacramento else 'No existe' }}</td>
-  <td>
-    {% if n.certificado %}
-      {{ n.certificado.nombreCertificado }} <br>
-    {% else %}
-      N/A
-    {% endif %}
-  </td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+<body class="sacred-bg">
 
-<a href="/" class="btn btn-secondary">Volver</a>
+<div class="container mt-5">
+
+    <div class="main-card">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="section-title">
+                    <span class="title-cross">✝</span> Niveles
+                </h2>
+                <div class="section-subtitle">
+                    Progreso y sacramentos por etapa
+                </div>
+            </div>
+
+            <div class="summary-card text-center">
+                <div class="summary-label">Total</div>
+                <div class="summary-value">{{ total }}</div>
+            </div>
+        </div>
+
+        <table class="table sacred-table align-middle">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Frase</th>
+                    <th>Sacramento</th>
+                    <th>Certificado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for n in niveles %}
+                <tr>
+                    <td>{{ n.nombreNivel }}</td>
+                    <td>{{ n.fraseNivel }}</td>
+                    <td>
+                        {% if n.sacramento %}
+                            <span class="badge bg-level">
+                                {{ n.sacramento.nombreSacramento }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">No existe</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if n.certificado %}
+                            {{ n.certificado.nombreCertificado }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-4 text-end">
+            <a href="/" class="btn btn-outline-sgold">
+                ⬅ Volver
+            </a>
+        </div>
+
+    </div>
+
 </div>
+
 </body>
 </html>
