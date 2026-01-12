@@ -63,7 +63,6 @@ def editar_catequista(id):
         p['_id'] = str(p['_id'])
 
     if request.method == "POST":
-        # idJoven siempre debe ser ObjectId
         if 'jovenApoyo' in catequista and 'idJoven' in catequista['jovenApoyo']:
             id_joven = catequista['jovenApoyo']['idJoven']
         else:
@@ -98,36 +97,133 @@ def eliminar_catequista(id):
     mongo.db.Catequista.delete_one({'_id': ObjectId(id)})
     return redirect(url_for("catequista"))
 
-# ================= CATEQUIZANDO =================
+# ---------------- Listado resumido ----------------
 @app.route("/Catequizando")
 def catequizando():
     catequizandos = list(mongo.db.Catequizando.find())
-    niveles_dict = {str(n['_id']): n['nombreNivel'] for n in mongo.db.Nivel.find()}
+
+    # Traer todos los niveles
+    niveles = {str(n['_id']): n['nombreNivel'] for n in mongo.db.Nivel.find()}
 
     niveles_resumen = {}
-    for c in catequizandos:
-        if isinstance(c.get('fechaNacimiento'), datetime):
-            c['fechaNacimiento'] = c['fechaNacimiento'].strftime('%Y-%m-%d')
-        # Convertir ObjectId a string para usar en template
-        c['idNivel'] = str(c['idNivel']) if c.get('idNivel') else ''
-        c['nombreNivel'] = niveles_dict.get(c.get('idNivel'), "Sin Nivel")
 
-        # Resumen
-        nivel = c['nombreNivel']
-        niveles_resumen[nivel] = niveles_resumen.get(nivel, 0) + 1
+    for c in catequizandos:
+        # Formatear fecha de nacimiento
+        if isinstance(c.get('fechaNacimiento'), datetime):
+            c['fechaNacimientoStr'] = c['fechaNacimiento'].strftime('%Y-%m-%d')
+        else:
+            c['fechaNacimientoStr'] = ''
+
+        # Nombre del nivel
+        nivel_id = str(c.get('idNivel', 'Sin Nivel'))
+        c['nombreNivel'] = niveles.get(nivel_id, 'Sin Nivel')
+
+        # Nombre del representante (solo nombre)
+        c['nombreRepresentante'] = c.get('representante', {}).get('nombreRepresentante', 'Sin Representante')
+
+        # Resumen por nivel
+        niveles_resumen[c['nombreNivel']] = niveles_resumen.get(c['nombreNivel'], 0) + 1
 
     return render_template(
-        "Catequizando.html", 
-        catequizandos=catequizandos, 
-        total=len(catequizandos), 
+        "Catequizando.html",
+        catequizandos=catequizandos,
+        total=len(catequizandos),
         niveles_resumen=niveles_resumen
     )
+
+# ---------------- Detalle completo ----------------
+@app.route("/Catequizando/detalle/<id>")
+def detalle_catequizando(id):
+    c = mongo.db.Catequizando.find_one({'_id': ObjectId(id)})
+
+    # Formatear fechas
+    if isinstance(c.get('fechaNacimiento'), datetime):
+        c['fechaNacimientoStr'] = c['fechaNacimiento'].strftime('%Y-%m-%d')
+    if c.get('inscripcion') and isinstance(c['inscripcion'].get('fechaInscripcion'), datetime):
+        c['inscripcion']['fechaInscripcionStr'] = c['inscripcion']['fechaInscripcion'].strftime('%Y-%m-%d')
+    if c.get('inasistencia') and isinstance(c['inasistencia'].get('fechaInasistencia'), datetime):
+        c['inasistencia']['fechaInasistenciaStr'] = c['inasistencia']['fechaInasistencia'].strftime('%Y-%m-%d')
+
+    # Traer nivel para mostrar nombre
+    if c.get('idNivel'):
+        nivel = mongo.db.Nivel.find_one({'_id': ObjectId(c['idNivel'])})
+        c['nombreNivel'] = nivel['nombreNivel'] if nivel else 'Sin Nivel'
+    else:
+        c['nombreNivel'] = 'Sin Nivel'
+
+    return render_template("Catequizando_detalle.html", catequizando=c)
+
+
+
+# ---------------- Editar catequizando ----------------
+@app.route("/Catequizando/editar/<id>", methods=["GET","POST"])
+def editar_catequizando(id):
+    catequizando = mongo.db.Catequizando.find_one({'_id': ObjectId(id)})
+    niveles = list(mongo.db.Nivel.find())
+
+    # Convertir ObjectId a string para el select
+    for n in niveles:
+        n['_id'] = str(n['_id'])
+
+    if request.method == "POST":
+        mongo.db.Catequizando.update_one(
+            {'_id': ObjectId(id)},
+            {'$set': {
+                # Información personal
+                'nombreCatequizando': request.form['nombre'],
+                'apellidoCatequizando': request.form['apellido'],
+                'cedulaCatequizando': request.form['cedula'],
+                'fechaNacimiento': datetime.strptime(request.form['fechaNacimiento'], "%Y-%m-%d"),
+                'tipoSangre': request.form['tipoSangre'],
+                'lugarResidencia': request.form['lugarResidencia'],
+                'lugarNacimiento': request.form['lugarNacimiento'],
+                'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None,
+
+                # Representante
+                'representante': {
+                    'nombreRepresentante': request.form['nombreRepresentante'],
+                    'apellidoRepresentante': request.form['apellidoRepresentante'],
+                    'numeroRepresentante': request.form['numeroRepresentante'],
+                    'tipoRepresentante': request.form['tipoRepresentante'],
+                    'ocupacionRepresentante': request.form['ocupacionRepresentante']
+                },
+
+                # Padrino
+                'padrino': {
+                    'nombresPadrino': request.form['nombresPadrino'],
+                    'cedulaPadrino': request.form['cedulaPadrino']
+                },
+
+                # Inscripción
+                'inscripcion': {
+                    'fechaInscripcion': datetime.strptime(request.form['fechaInscripcion'], "%Y-%m-%d"),
+                    'estadoInscripcion': True if request.form.get('estadoInscripcion') == 'on' else False
+                },
+
+                # Última inasistencia
+                'inasistencia': {
+                    'fechaInasistencia': datetime.strptime(request.form['fechaInasistencia'], "%Y-%m-%d") if request.form['fechaInasistencia'] else None,
+                    'presente': True if request.form.get('presente') == 'on' else False
+                }
+            }}
+        )
+        return redirect(url_for("catequizando"))
+
+    # Formatear fechas para mostrar en el form
+    if catequizando.get('fechaNacimiento'):
+        catequizando['fechaNacimientoStr'] = catequizando['fechaNacimiento'].strftime("%Y-%m-%d")
+    if catequizando.get('inscripcion') and catequizando['inscripcion'].get('fechaInscripcion'):
+        catequizando['inscripcion']['fechaInscripcionStr'] = catequizando['inscripcion']['fechaInscripcion'].strftime("%Y-%m-%d")
+    if catequizando.get('inasistencia') and catequizando['inasistencia'].get('fechaInasistencia'):
+        catequizando['inasistencia']['fechaInasistenciaStr'] = catequizando['inasistencia']['fechaInasistencia'].strftime("%Y-%m-%d")
+
+    return render_template("Catequizando_form.html", catequizando=catequizando, niveles=niveles, accion="Editar")
 
 @app.route("/Catequizando/nuevo", methods=["GET","POST"])
 def nuevo_catequizando():
     niveles = list(mongo.db.Nivel.find())
     for n in niveles:
-        n['_id'] = str(n['_id'])  # Convertir ObjectId a string
+        n['_id'] = str(n['_id'])
 
     if request.method == "POST":
         mongo.db.Catequizando.insert_one({
@@ -135,38 +231,36 @@ def nuevo_catequizando():
             'apellidoCatequizando': request.form['apellido'],
             'cedulaCatequizando': request.form['cedula'],
             'fechaNacimiento': datetime.strptime(request.form['fechaNacimiento'], "%Y-%m-%d"),
-            'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None
+            'tipoSangre': request.form['tipoSangre'],
+            'lugarResidencia': request.form['lugarResidencia'],
+            'lugarNacimiento': request.form['lugarNacimiento'],
+            'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None,
+            'representante': {},
+            'padrino': {},
+            'inscripcion': {},
+            'inasistencia': {}
         })
         return redirect(url_for("catequizando"))
 
-    return render_template("Catequizando_form.html", accion="Nuevo", catequizando=None, niveles=niveles)
+    # Inicializar campos vacíos para el form
+    catequizando = {
+        'nombreCatequizando': '',
+        'apellidoCatequizando': '',
+        'cedulaCatequizando': '',
+        'fechaNacimientoStr': '',
+        'tipoSangre': '',
+        'lugarResidencia': '',
+        'lugarNacimiento': '',
+        'idNivel': '',
+        'representante': {},
+        'padrino': {},
+        'inscripcion': {},
+        'inasistencia': {}
+    }
 
-@app.route("/Catequizando/editar/<id>", methods=["GET","POST"])
-def editar_catequizando(id):
-    niveles = list(mongo.db.Nivel.find())
-    for n in niveles:
-        n['_id'] = str(n['_id'])
+    return render_template("Catequizando_form.html", catequizando=catequizando, niveles=niveles, accion="Nuevo")
 
-    catequizando = mongo.db.Catequizando.find_one({'_id': ObjectId(id)})
-    if isinstance(catequizando.get("fechaNacimiento"), datetime):
-        catequizando["fechaNacimiento"] = catequizando["fechaNacimiento"].strftime("%Y-%m-%d")
-    # Convertir ObjectId a string para seleccionar el nivel en template
-    catequizando['idNivel'] = str(catequizando['idNivel']) if catequizando.get('idNivel') else ''
 
-    if request.method == "POST":
-        mongo.db.Catequizando.update_one(
-            {'_id': ObjectId(id)},
-            {'$set': {
-                'nombreCatequizando': request.form['nombre'],
-                'apellidoCatequizando': request.form['apellido'],
-                'cedulaCatequizando': request.form['cedula'],
-                'fechaNacimiento': datetime.strptime(request.form['fechaNacimiento'], "%Y-%m-%d"),
-                'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None
-            }}
-        )
-        return redirect(url_for("catequizando"))
-
-    return render_template("Catequizando_form.html", accion="Editar", catequizando=catequizando, niveles=niveles)
 
 @app.route("/Catequizando/eliminar/<id>", methods=["POST"])
 def eliminar_catequizando(id):

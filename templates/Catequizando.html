@@ -22,6 +22,8 @@
 <th>Cédula</th>
 <th>Fecha Nacimiento</th>
 <th>Nivel</th>
+<th>Representante</th>
+<th>Numero Representante</th>
 <th>Acciones</th>
 </tr>
 </thead>
@@ -32,11 +34,12 @@
   <td>{{ c.apellidoCatequizando }}</td>
   <td>{{ c.cedulaCatequizando }}</td>
   <td>{{ c.fechaNacimiento }}</td>
-  <td>{{ c.nombreNivel }}</td>
+  <td>{{ c.nombreNivel if c.nombreNivel else 'Sin Nivel' }}</td>
+  <td>{{ c.representante.apellidoRepresentante if c.representante and c.representante.apellidoRepresentante else '' }}</td>
+  <td>{{ c.representante.numeroRepresentante if c.representante and c.representante.numeroRepresentante else '' }}</td>
   <td>
-    <a class="btn btn-warning btn-sm" href="{{ url_for('editar_catequizando', id=c._id) }}">
-       Editar
-    </a>
+    <a class="btn btn-warning btn-sm" href="{{ url_for('editar_catequizando', id=c._id) }}">Editar</a>
+    <a class="btn btn-info btn-sm" href="{{ url_for('detalle_catequizando', id=c._id) }}">Detalles</a>
     <form action="{{ url_for('eliminar_catequizando', id=c._id) }}" method="post" style="display:inline">
       <button class="btn btn-danger btn-sm">Eliminar</button>
     </form>
