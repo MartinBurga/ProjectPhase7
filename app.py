@@ -23,11 +23,16 @@ def catequista():
     parroquias_dict = {str(p['_id']): p['nombre'] for p in parroquias}
 
     for c in catequistas:
+        c['_id'] = str(c['_id'])
+
         id_parroquia = str(c.get('idParroquia')) if c.get('idParroquia') else None
         c['nombreParroquia'] = parroquias_dict.get(id_parroquia, "Sin Parroquia")
 
-        if 'jovenApoyo' not in c or not c['jovenApoyo']:
-            c['jovenApoyo'] = {'nombresJoven':'', 'cedulaJoven':''}
+        if not c.get('jovenApoyo'):
+            c['jovenApoyo'] = {
+                'nombresJoven': '',
+                'cedulaJoven': ''
+            }
 
     return render_template("Catequista.html", catequistas=catequistas)
 
@@ -36,62 +41,84 @@ def catequista():
 @app.route("/Catequista/nuevo", methods=["GET","POST"])
 def nuevo_catequista():
     if request.method == "POST":
-        mongo.db.Catequista.insert_one({
-            'nombreCatequista': request.form['nombre'],
-            'apellidoCatequista': request.form['apellido'],
-            'cedula': request.form['cedula'],
-            'telefonoCatequista': request.form['telefono'],
-            'idParroquia': request.form['idParroquia'],
-            'jovenApoyo': {
-                'nombresJoven': request.form['Joven Apoyo'],
-                'cedulaJoven': request.form['Cedula Joven']
+
+        data = {
+            "_idCatequista": ObjectId(),
+            "nombreCatequista": request.form["nombre"],
+            "apellidoCatequista": request.form["apellido"],
+            "cedula": request.form["cedula"],
+            "telefonoCatequista": request.form["telefono"],
+            "idParroquia": request.form["idParroquia"]
+        }
+
+        nombre = request.form.get("jovenApoyoNombre", "").strip()
+        cedula = request.form.get("jovenApoyoCedula", "").strip()
+
+        # Solo si hay datos completos
+        if nombre != "" and cedula != "":
+            data["jovenApoyo"] = {
+                "idJoven": ObjectId(),
+                "nombresJoven": nombre,
+                "cedulaJoven": cedula
             }
-        })
+
+        mongo.db.Catequista.insert_one(data)
         return redirect(url_for("catequista"))
 
     parroquias = list(mongo.db.Parroquia.find())
     for p in parroquias:
-        p['_id'] = str(p['_id'])
+        p["_id"] = str(p["_id"])
 
     return render_template("Catequista_form.html", accion="Nuevo", catequista=None, parroquias=parroquias)
 
+
+
+
 @app.route("/Catequista/editar/<id>", methods=["GET","POST"])
 def editar_catequista(id):
-    catequista = mongo.db.Catequista.find_one({'_id': ObjectId(id)})
+    catequista = mongo.db.Catequista.find_one({"_id": ObjectId(id)})
 
     parroquias = list(mongo.db.Parroquia.find())
     for p in parroquias:
-        p['_id'] = str(p['_id'])
+        p["_id"] = str(p["_id"])
 
     if request.method == "POST":
-        if 'jovenApoyo' in catequista and 'idJoven' in catequista['jovenApoyo']:
-            id_joven = catequista['jovenApoyo']['idJoven']
-        else:
-            id_joven = ObjectId()
+
+        data = {
+            "nombreCatequista": request.form["nombre"],
+            "apellidoCatequista": request.form["apellido"],
+            "cedula": request.form["cedula"],
+            "telefonoCatequista": request.form["telefono"],
+            "idParroquia": request.form["idParroquia"]
+        }
+
+        nombre = request.form.get("jovenApoyoNombre", "").strip()
+        cedula = request.form.get("jovenApoyoCedula", "").strip()
+
+        # Si hay datos → actualizar
+        if nombre != "" and cedula != "":
+            data["jovenApoyo"] = {
+                "idJoven": catequista.get("jovenApoyo", {}).get("idJoven", ObjectId()),
+                "nombresJoven": nombre,
+                "cedulaJoven": cedula
+            }
 
         mongo.db.Catequista.update_one(
-            {'_id': ObjectId(id)},
-            {'$set': {
-                'nombreCatequista': request.form['nombre'],
-                'apellidoCatequista': request.form['apellido'],
-                'cedula': request.form['cedula'],
-                'telefonoCatequista': request.form['telefono'],
-                'idParroquia': request.form['idParroquia'] if request.form.get('idParroquia') else "",
-                'jovenApoyo': {
-                    'idJoven': ObjectId(id_joven),
-                    'nombresJoven': request.form['Joven Apoyo'],
-                    'cedulaJoven': request.form['Cedula Joven']
-                }
-            }}
+            {"_id": ObjectId(id)},
+            {"$set": data}
         )
+
+        # Si los campos quedaron vacíos → borrar jovenApoyo
+        if nombre == "" and cedula == "":
+            mongo.db.Catequista.update_one(
+                {"_id": ObjectId(id)},
+                {"$unset": {"jovenApoyo": ""}}
+            )
+
         return redirect(url_for("catequista"))
 
-    return render_template(
-        "Catequista_form.html",
-        accion="Editar",
-        catequista=catequista,
-        parroquias=parroquias
-    )
+    return render_template("Catequista_form.html", accion="Editar", catequista=catequista, parroquias=parroquias)
+
 
 @app.route("/Catequista/eliminar/<id>", methods=["POST"])
 def eliminar_catequista(id):
@@ -248,6 +275,8 @@ def nuevo_catequizando():
 
     if request.method == "POST":
         mongo.db.Catequizando.insert_one({
+
+            # Información personal
             'nombreCatequizando': request.form['nombre'],
             'apellidoCatequizando': request.form['apellido'],
             'cedulaCatequizando': request.form['cedula'],
@@ -256,14 +285,40 @@ def nuevo_catequizando():
             'lugarResidencia': request.form['lugarResidencia'],
             'lugarNacimiento': request.form['lugarNacimiento'],
             'idNivel': ObjectId(request.form['idNivel']) if request.form['idNivel'] else None,
-            'representante': {},
-            'padrino': {},
-            'inscripcion': {},
-            'inasistencia': {}
+
+            # REPRESENTANTE
+            'representante': {
+                'nombreRepresentante': request.form.get('nombreRepresentante'),
+                'apellidoRepresentante': request.form.get('apellidoRepresentante'),
+                'numeroRepresentante': request.form.get('numeroRepresentante'),
+                'tipoRepresentante': request.form.get('tipoRepresentante'),
+                'ocupacionRepresentante': request.form.get('ocupacionRepresentante')
+            },
+
+            # PADRINO
+            'padrino': {
+                'nombresPadrino': request.form.get('nombresPadrino'),
+                'cedulaPadrino': request.form.get('cedulaPadrino')
+            },
+
+            # INSCRIPCIÓN
+            'inscripcion': {
+                'fechaInscripcion': datetime.strptime(request.form['fechaInscripcion'], "%Y-%m-%d")
+                                   if request.form.get('fechaInscripcion') else None,
+                'estadoInscripcion': True if request.form.get('estadoInscripcion') == 'on' else False
+            },
+
+            # INASISTENCIA
+            'inasistencia': {
+                'fechaInasistencia': datetime.strptime(request.form['fechaInasistencia'], "%Y-%m-%d")
+                                     if request.form.get('fechaInasistencia') else None,
+                'presente': True if request.form.get('presente') == 'on' else False
+            }
         })
+
         return redirect(url_for("catequizando"))
 
-    # Inicializar campos vacíos para el form
+    # Para formulario vacío
     catequizando = {
         'nombreCatequizando': '',
         'apellidoCatequizando': '',
@@ -280,6 +335,7 @@ def nuevo_catequizando():
     }
 
     return render_template("Catequizando_form.html", catequizando=catequizando, niveles=niveles, accion="Nuevo")
+
 
 
 
@@ -343,17 +399,27 @@ def parroquia():
 @app.route("/Parroquia/nueva", methods=["GET","POST"])
 def nueva_parroquia():
     if request.method == "POST":
+
+        nombre = request.form.get("nombre")
+        nombreSede = request.form.get("nombreSede")
+        direccion = request.form.get("direccion")
+        telefono = request.form.get("telefono")
+        parroco = request.form.get("parroco")
+
         mongo.db.Parroquia.insert_one({
-            'nombre': request.form['nombre'],
-            'sede': {
-                'nombreSede': request.form['nombreSede'],
-                'direccion': request.form['direccion'],
-                'telefonoSede': request.form['telefono'],
-                'parroco': request.form['parroco']
+            "nombre": nombre,
+            "parroco": parroco,
+            "sede": {
+                "nombreSede": nombreSede,
+                "direccion": direccion,
+                "telefonoSede": telefono
             }
         })
+
         return redirect(url_for("parroquia"))
+
     return render_template("Parroquia_form.html", accion="Nueva", parroquia=None)
+
 
 @app.route("/Parroquia/editar/<id>", methods=["GET","POST"])
 def editar_parroquia(id):

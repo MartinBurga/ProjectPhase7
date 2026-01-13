@@ -61,8 +61,8 @@
                         <td>{{ c.cedula }}</td>
                         <td>{{ c.telefonoCatequista }}</td>
                         <td>{{ c.nombreParroquia }}</td>
-                        <td>{{ c.jovenApoyo.nombresJoven if c.jovenApoyo }}</td>
-                        <td>{{ c.jovenApoyo.cedulaJoven if c.jovenApoyo }}</td>
+                        <td>{{ c.jovenApoyo.nombresJoven if c.jovenApoyo and c.jovenApoyo.nombresJoven else '—' }}</td>
+                        <td>{{ c.jovenApoyo.cedulaJoven if c.jovenApoyo and c.jovenApoyo.cedulaJoven else '—' }}</td>
                         <td class="text-center">
                             <a href="{{ url_for('editar_catequista', id=c._id) }}" class="btn btn-sm btn-outline-sgold">
                                 Editar
